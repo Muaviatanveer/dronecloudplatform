@@ -1,31 +1,46 @@
 const express = require('express');
-const bodyParser = require('body-parser');
-const cors = require('cors');
 const helmet = require('helmet');
-const morgan = require('morgan');
 
 const app = express();
-const port = process.env.PORT || 3000;
 
-// Middleware setup
-app.use(cors());
-app.use(helmet());
-app.use(bodyParser.json({ limit: '50mb' }));
-app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
-app.use(morgan('combined'));
+// Middleware to set security headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: [''self']",
+      scriptSrc: [''self', 'unsafe-inline', 'unsafe-eval']",
+      styleSrc: [''self', 'unsafe-inline']",
+      imgSrc: [''self', 'data:']",
+      fontSrc: [''self', 'data:']",
+      connectSrc: [''self', 'https://api.example.com']",
+      frameSrc: [''none']",
+      objectSrc: [''none']",
+      mediaSrc: [''self']",
+      childSrc: [''none']",
+      manifestSrc: [''self']"
+    }
+  },
+  xssFilter: true,
+  noSniff: true,
+  hsts: {
+    maxAge: 31536000, // 1 year
+    includeSubDomains: true,
+    preload: true
+  }
+}));
 
-// Routes
+// Example route controller
 app.get('/', (req, res) => {
-  res.send('Welcome to the Drone Management Platform API!');
-});
-
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).send('Something broke!');
+  try {
+    res.send('<h1>Hello World</h1>');
+  } catch (error) {
+    console.error('Error in / route:', error);
+    res.status(500).send('Internal Server Error');
+  }
 });
 
 // Start the server
-app.listen(port, () => {
-  console.log(`Drone Management Platform API running on port ${port}`);
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
